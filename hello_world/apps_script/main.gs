@@ -1,6 +1,6 @@
 function helloWorldGemini() {
   var apiKey = "YOUR_API_KEY"; // thay bằng API key thật
-  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
   var payload = {
     contents: [{
