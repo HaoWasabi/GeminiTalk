@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* chữ ở trên, nút ở dưới */
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      p {
+        margin-top: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .close-btn {
+        background: #007bff;
+        color: white;
+      }
+      .close-btn:hover {
+        background: #0056b3;
+      }
+      .footer {
+        margin-bottom: 10px; /* cách đáy 1 chút */
+      }
+    </style>
+  </head>
+  <body>
+    <p>99% người chơi dừng lại trước khi họ thắng.</p>
+    <div class="footer">
+      <button class="close-btn" onclick="google.script.host.close()">Đóng</button>
+    </div>
+  </body>
+</html>
