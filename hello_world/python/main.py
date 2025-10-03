@@ -1,15 +1,49 @@
-import os
-import google.generativeai as genai
+# To run this code you need to install the following dependencies:
+# pip install google-genai python-dotenv
+
 from dotenv import load_dotenv
+import os
+from google import genai
+from google.genai import types
 
-# Load API key
+# Load biến môi trường từ file .env
 load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
 
-# Cấu hình Gemini
-genai.configure(api_key=api_key)
+def generate():
+    # Khởi tạo client với API key
+    client = genai.Client(
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
 
-# Gửi yêu cầu "Hello World"
-response = genai.GenerativeModel("gemini-2.5-flash").generate_content("Say Hello World!")
+    # Model text
+    model = "gemini-2.0-flash"
 
-print("Gemini trả lời:", response.text)
+    # Prompt: Say hello world
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="Say hello world"),
+            ],
+        ),
+    ]
+
+    # Config cho response text
+    generate_content_config = types.GenerateContentConfig(
+        response_modalities=["TEXT"],
+    )
+
+    # Gửi request và nhận response
+    response_stream = client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    )
+    
+    # In response từ Gemini
+    for chunk in response_stream:
+        if chunk.text:
+            print(chunk.text, end="")
+    
+if __name__ == "__main__":
+    generate()

@@ -1,19 +1,52 @@
-import os
-import google.generativeai as genai
+# To run this code you need to install the following dependencies:
+# pip install google-genai python-dotenv
+
 from dotenv import load_dotenv
+import os
+from google import genai
+from google.genai import types
 
-# Cấu hình API Key
+# Load biến môi trường từ file .env
 load_dotenv()
-api_key = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=api_key)
 
-# Chọn mô hình
-model = genai.GenerativeModel("gemini-2.5-flash")
+def generate():
+    client = genai.Client(
+        api_key=os.getenv("GEMINI_API_KEY"),
+    )
 
-# Tạo prompt
-prompt = "Viết một đoạn giới thiệu ngắn về trí tuệ nhân tạo."
+    # Model chỉ cần bản text (không dùng image)
+    model = "gemini-2.0-flash"
 
-# Nhận kết quả
-response = model.generate_content(prompt)
+    # Nội dung prompt
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="Giới thiệu về trí tuệ nhân tạo"),
+            ],
+        ),
+    ]
 
-print("AI trả lời:", response.text)
+    # Config chỉ dành cho text
+    generate_content_config = types.GenerateContentConfig(
+        temperature=0.9,
+        top_p=0.85,
+        max_output_tokens=200,
+        response_modalities=["TEXT"],
+    )
+
+    # Stream output text
+    for chunk in client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    ):
+        if (
+            chunk.candidates
+            and chunk.candidates[0].content
+            and chunk.candidates[0].content.parts
+        ):
+            print(chunk.text, end="", flush=True)
+
+if __name__ == "__main__":
+    generate()
