@@ -1,4 +1,3 @@
-// Frontend
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Game") // Tạo menu riêng trong Sheets
@@ -27,5 +26,61 @@ function showSudokuHintDialog() {
   SpreadsheetApp.getUi().showModalDialog(html, "Gợi ý");
 }
 
+function drawSudoku() {
+  var puzzle = [
+    [5, 3, 0, 0, 7, 0, 0, 0, 0],
+    [6, 0, 0, 1, 9, 5, 0, 0, 0],
+    [0, 9, 8, 0, 0, 0, 0, 6, 0],
+    [8, 0, 0, 0, 6, 0, 0, 0, 3],
+    [4, 0, 0, 8, 0, 3, 0, 0, 1],
+    [7, 0, 0, 0, 2, 0, 0, 0, 6],
+    [0, 6, 0, 0, 0, 0, 2, 8, 0],
+    [0, 0, 0, 4, 1, 9, 0, 0, 5],
+    [0, 0, 0, 0, 8, 0, 0, 7, 9]
+  ];
 
-// Backend
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SUKOKU");
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("SUKOKU");
+  }
+
+  var startRow = 4;
+  var startCol = 3;
+
+  // Vẽ Sudoku
+  for (var r = 0; r < 9; r++) {
+    for (var c = 0; c < 9; c++) {
+      var cell = sheet.getRange(startRow + r, startCol + c);
+      if (puzzle[r][c] !== 0) {
+        cell.setValue(puzzle[r][c]);
+        cell.setBackground("#d9d9d9"); // ô có số: tô xám
+      } else {
+        cell.setValue("");
+        cell.setBackground(null); // ô trống
+      }
+      cell.setHorizontalAlignment("center");
+      cell.setVerticalAlignment("middle");
+      cell.setFontWeight("bold");
+    }
+  }
+
+  // chỉnh kích thước ô
+  sheet.setColumnWidths(startCol, 9, 30);
+  sheet.setRowHeights(startRow, 9, 30);
+
+  // Xóa viền cũ
+  sheet.getRange(startRow, startCol, 9, 9).setBorder(false, false, false, false, false, false);
+
+  // Tạo viền cho toàn bảng
+  sheet.getRange(startRow, startCol, 9, 9).setBorder(true, true, true, true, true, true);
+
+  // Viền dày cho các khối 3x3
+  for (var i = 0; i <= 9; i += 3) {
+    // hàng ngang
+    sheet.getRange(startRow + i, startCol, 1, 9).setBorder(true, null, null, null, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+    // cột dọc
+    sheet.getRange(startRow, startCol + i, 9, 1).setBorder(null, null, null, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  }
+  // viền ngoài cùng đậm
+  sheet.getRange(startRow, startCol, 9, 9).setBorder(true, true, true, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+}

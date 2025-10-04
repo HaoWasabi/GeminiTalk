@@ -45,6 +45,13 @@
 
 
       function startGame() {
+        // Gọi hàm server-side để vẽ Sudoku
+        google.script.run.withSuccessHandler(function(){
+          alert("Đã tạo Sudoku tại Sheet SUDOKU C4:K12!");
+          }).withFailureHandler(function(err){
+            alert("Lỗi: " + err.message);
+          }).drawSudoku();
+
         // reset timer
         clearInterval(timerInterval);
         seconds = 0;
