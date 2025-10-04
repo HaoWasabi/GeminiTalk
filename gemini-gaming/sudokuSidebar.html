@@ -27,15 +27,48 @@
   </head>
   <body>
     <h2>Sidebar Sudoku</h2>
-    <p>Kỷ lục: 30:00s</p>
+    <p>Kỷ lục: <span id="record">99m99s</span></p>
     <h3>Hướng dẫn Sudoku</h3>
     <ul>
       <li>Bảng Sudoku gồm 9x9 ô, chia thành 9 vùng 3x3.</li>
       <li>Điền số từ 1 đến 9 vào các ô trống.</li>
       <li>Mỗi hàng, mỗi cột và mỗi vùng 3x3 chỉ được chứa mỗi số duy nhất một lần.</li>
     </ul>
-    <button onclick="google.script.run.withSuccessHandler(alert).testAction()">Tạo màn chơi</button>
+    <button onclick="startGame()">Tạo màn chơi</button>
     <button onclick="google.script.run.showSudokuAnswerDialog()">Đáp án</button>
     <button onclick="google.script.run.showSudokuHintDialog()">Gợi ý</button>
+
+    <script>
+      let timerInterval;
+      let seconds = 0;
+      const MAX_SECONDS = 24 * 60 * 60; // 24h = 86400 giây
+
+
+      function startGame() {
+        // reset timer
+        clearInterval(timerInterval);
+        seconds = 0;
+
+        // hiển thị ngay 0m0s
+        updateTimer();
+
+        // gọi backend nếu cần (bỏ alert đi)
+        // google.script.run.testAction();
+
+        // bắt đầu đếm thời gian
+        timerInterval = setInterval(updateTimer, 1000);
+      }
+
+      function updateTimer() {
+        if (seconds >= MAX_SECONDS) {
+          clearInterval(timerInterval);
+          return;
+          }
+        let min = Math.floor(seconds / 60);
+        let sec = seconds % 60;
+        document.getElementById("record").textContent = `${min}m${sec}s`;
+        seconds++;
+      }
+    </script>
   </body>
 </html>
