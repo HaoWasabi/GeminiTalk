@@ -75,12 +75,16 @@ function drawSudoku() {
   sheet.getRange(startRow, startCol, 9, 9).setBorder(true, true, true, true, true, true);
 
   // Viền dày cho các khối 3x3
-  for (var i = 0; i <= 9; i += 3) {
-    // hàng ngang
-    sheet.getRange(startRow + i, startCol, 1, 9).setBorder(true, null, null, null, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
-    // cột dọc
-    sheet.getRange(startRow, startCol + i, 9, 1).setBorder(null, null, null, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      var r = startRow + i*3;
+      var c = startCol + j*3;
+      sheet.getRange(r, c, 3, 3)
+          .setBorder(true, true, true, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+    }
   }
-  // viền ngoài cùng đậm
-  sheet.getRange(startRow, startCol, 9, 9).setBorder(true, true, true, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+
+  // Viền ngoài cùng đậm (không cần nếu trên đã set đủ)
+  sheet.getRange(startRow, startCol, 9, 9)
+      .setBorder(true, true, true, true, null, null, "black", SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
 }
