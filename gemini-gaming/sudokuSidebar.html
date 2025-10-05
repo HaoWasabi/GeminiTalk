@@ -26,9 +26,9 @@
     </style>
   </head>
   <body>
-    <h2>Sidebar Sudoku</h2>
-    <p>Kỷ lục: <span id="record">99m99s</span></p>
-    <h3>Hướng dẫn Sudoku</h3>
+    <!--Sudoku Sidebar -->
+    <h2>Sudoku Sidebar</h2>
+    <h3>Hướng dẫn</h3>
     <ul>
       <li>Bảng Sudoku gồm 9x9 ô, chia thành 9 vùng 3x3.</li>
       <li>Điền số từ 1 đến 9 vào các ô trống.</li>
@@ -37,44 +37,20 @@
     <button onclick="startGame()">Tạo màn chơi</button>
     <button onclick="google.script.run.showSudokuAnswerDialog()">Đáp án</button>
     <button onclick="google.script.run.showSudokuHintDialog()">Gợi ý</button>
-
     <script>
-      let timerInterval;
-      let seconds = 0;
-      const MAX_SECONDS = 24 * 60 * 60; // 24h = 86400 giây
-
-
       function startGame() {
-        // Gọi hàm server-side để vẽ Sudoku
-        google.script.run.withSuccessHandler(function(){
-          alert("Đã tạo Sudoku tại Sheet SUDOKU C4:K12!");
-          }).withFailureHandler(function(err){
-            alert("Lỗi: " + err.message);
-          }).drawSudoku();
+        // Gọi server-side: hiển thị modal + tạo ván (startNewSudoku sẽ show modal rồi draw)
+        google.script.run
+          .withFailureHandler(function(err){
+            alert("Lỗi khi tạo ván: " + (err && err.message ? err.message : err));
+          })
+          .startNewSudoku();
 
-        // reset timer
+        // Reset timer
         clearInterval(timerInterval);
         seconds = 0;
-
-        // hiển thị ngay 0m0s
         updateTimer();
-
-        // gọi backend nếu cần (bỏ alert đi)
-        // google.script.run.testAction();
-
-        // bắt đầu đếm thời gian
         timerInterval = setInterval(updateTimer, 1000);
-      }
-
-      function updateTimer() {
-        if (seconds >= MAX_SECONDS) {
-          clearInterval(timerInterval);
-          return;
-          }
-        let min = Math.floor(seconds / 60);
-        let sec = seconds % 60;
-        document.getElementById("record").textContent = `${min}m${sec}s`;
-        seconds++;
       }
     </script>
   </body>

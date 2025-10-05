@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #ffffff;
+        text-align: center;
+        color: #222;
+      }
+      .box {
+        padding: 10px 18px;
+        border-radius: 8px;
+      }
+      .msg {
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div id="message" class="msg">⏳ Đang tạo ván...</div>
+    </div>
+
+    <script>
+      var pollInterval = null;
+
+      function updateMessage(text) {
+        document.getElementById('message').textContent = text;
+      }
+
+      function pollStatus() {
+        google.script.run.withSuccessHandler(function(status){
+          if (status === 'done') {
+            updateMessage('✅ Đã tạo ván!');
+            stopPolling();
+          } else if (status === 'error') {
+            updateMessage('❌ Lỗi tạo ván');
+            stopPolling();
+          } else {
+            // vẫn loading -> giữ nguyên thông báo (có thể thêm animate nếu muốn)
+          }
+        }).checkSudokuStatus();
+      }
+
+      function stopPolling() {
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+      }
+
+      // bắt đầu poll ngay và lặp mỗi 800ms
+      pollStatus();
+      pollInterval = setInterval(pollStatus, 800);
+
+      // Khi cửa sổ modal đóng (nếu người dùng đóng tay), dừng polling
+      window.addEventListener('unload', stopPolling);
+    </script>
+  </body>
+</html>
