@@ -45,12 +45,6 @@
             alert("Lỗi khi tạo ván: " + (err && err.message ? err.message : err));
           })
           .startNewSudoku();
-
-        // Reset timer
-        clearInterval(timerInterval);
-        seconds = 0;
-        updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
       }
     </script>
   </body>

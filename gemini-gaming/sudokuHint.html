@@ -3,44 +3,80 @@
   <head>
     <base target="_top">
     <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-      }
       body {
         font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between; /* chữ ở trên, nút ở dưới */
-        text-align: center;
-        padding: 20px;
-        box-sizing: border-box;
+        padding: 15px;
       }
-      p {
-        margin-top: 20px;
+      h3 {
+        margin-top: 0;
+      }
+      label {
+        display: inline-block;
+        width: 60px;
+      }
+      input {
+        width: 60px;
+        padding: 5px;
+        margin: 5px;
       }
       button {
-        padding: 10px 20px;
+        margin-top: 10px;
+        padding: 6px 12px;
+        background: #4caf50;
+        color: white;
         border: none;
         border-radius: 6px;
         cursor: pointer;
       }
-      .close-btn {
-        background: #007bff;
-        color: white;
+      button:hover {
+        background: #45a049;
       }
-      .close-btn:hover {
-        background: #0056b3;
-      }
-      .footer {
-        margin-bottom: 10px; /* cách đáy 1 chút */
+      #hint {
+        margin-top: 15px;
+        white-space: pre-wrap;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        min-height: 60px;
       }
     </style>
   </head>
   <body>
-    <p>Bạn có chắc chắn muốn xem đáp án và dừng ván?</p>
-    <div class="footer">
-      <button class="close-btn" onclick="google.script.host.close()">Đóng</button>
+    <h3>Gợi ý cho một ô Sudoku</h3>
+    <div>
+      <label for="row">Hàng:</label>
+      <input type="number" id="row" min="1" max="9" placeholder="1-9">
     </div>
+    <div>
+      <label for="col">Cột:</label>
+      <input type="number" id="col" min="1" max="9" placeholder="1-9">
+    </div>
+    <button onclick="getHint()">Lấy gợi ý</button>
+
+    <div id="hint">Nhập hàng, cột và bấm "Lấy gợi ý".</div>
+
+    <script>
+      function getHint() {
+        var row = document.getElementById("row").value;
+        var col = document.getElementById("col").value;
+
+        if (!row || !col) {
+          document.getElementById("hint").innerText = "⚠️ Vui lòng nhập đủ hàng và cột (1–9).";
+          return;
+        }
+
+        document.getElementById("hint").innerText = "⏳ Đang lấy gợi ý...";
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            document.getElementById("hint").innerText = result;
+          })
+          .withFailureHandler(function(err) {
+            document.getElementById("hint").innerText = "❌ Lỗi: " + err.message;
+          })
+          .getSudokuHintForCell(Number(row), Number(col));
+      }
+    </script>
   </body>
 </html>

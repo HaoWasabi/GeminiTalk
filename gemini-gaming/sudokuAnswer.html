@@ -3,12 +3,25 @@
   <head>
     <base target="_top">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
+      html, body {
+        height: 100%;
+        margin: 0;
       }
-      p {
-        padding-left: 20px;
+      body{
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #ffffff;
+        text-align: center;
+        color: #222;
+      }
+      .box {
+        padding: 10px 18px;
+        border-radius: 8px;
+      }
+      .msg {
+        font-size: 18px;
       }
       button {
         margin: 5px;
@@ -41,10 +54,24 @@
     </style>
   </head>
   <body>
-    <p>Bạn có chắc chắn muốn xem đáp án và dừng ván?</p>
+    <div class="box">
+      <div id="message" class="msg">Bạn có chắc chắn muốn xem đáp án và dừng ván?</div>
+    </div>
     <div class="actions">
-      <button class="confirm" onclick="google.script.run.withSuccessHandler(alert).testAction()">Tiếp tục</button>
+      <button class="confirm" onclick="confirmFunction()">Tiếp tục</button>
       <button class="cancel" onclick="google.script.host.close()">Hủy</button>
     </div>
+    <script>
+      function confirmFunction() {
+        google.script.run
+          .withSuccessHandler(function() {
+            google.script.host.close(); // chỉ đóng khi getSudokuSolution chạy xong
+          })
+          .withFailureHandler(function(err) {
+            alert("Lỗi: " + err.message);
+          })
+          .getSudokuSolution();
+      }
+    </script>
   </body>
 </html>
