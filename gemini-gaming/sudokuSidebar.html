@@ -26,7 +26,6 @@
     </style>
   </head>
   <body>
-    <!--Sudoku Sidebar -->
     <h2>Sudoku Sidebar</h2>
     <h3>Hướng dẫn</h3>
     <ul>
@@ -34,18 +33,45 @@
       <li>Điền số từ 1 đến 9 vào các ô trống.</li>
       <li>Mỗi hàng, mỗi cột và mỗi vùng 3x3 chỉ được chứa mỗi số duy nhất một lần.</li>
     </ul>
+
     <button onclick="startGame()">Tạo màn chơi</button>
     <button onclick="google.script.run.showSudokuAnswerDialog()">Đáp án</button>
     <button onclick="google.script.run.showSudokuHintDialog()">Gợi ý</button>
+
+    <!-- Thông báo ngay dưới nút Gợi ý -->
+    <div id="win-message" style="margin-top:10px; font-weight:bold; color:green;"></div>
+
     <script>
       function startGame() {
-        // Gọi server-side: hiển thị modal + tạo ván (startNewSudoku sẽ show modal rồi draw)
         google.script.run
           .withFailureHandler(function(err){
             alert("Lỗi khi tạo ván: " + (err && err.message ? err.message : err));
           })
           .startNewSudoku();
+        document.getElementById("win-message").innerText = "";
       }
+
+      function showWinMessage() {
+        document.getElementById("win-message").innerText =
+          "🎉 Chúc mừng! Bạn đã hoàn thành màn chơi!";
+      }
+
+      function hideWinMessage() {
+        document.getElementById("win-message").innerText = "";
+      }
+
+      // Polling trạng thái Sudoku liên tục
+      setInterval(function(){
+        google.script.run
+          .withSuccessHandler(function(status){
+            if (status === "win") {
+              showWinMessage();
+            } else {
+              hideWinMessage();
+            }
+          })
+          .checkSudokuStatus();
+      }, 2000); // kiểm tra mỗi 2 giây
     </script>
   </body>
 </html>

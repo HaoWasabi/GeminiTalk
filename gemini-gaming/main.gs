@@ -286,11 +286,13 @@ Yêu cầu:
 
 function onEdit(e) {
   try {
-    // Đọc puzzle + metadata
     var props = PropertiesService.getScriptProperties();
     var puzzleStr = props.getProperty("SUDOKU_PUZZLE");
-    if (!puzzleStr) return; // chưa có puzzle
+    var solutionStr = props.getProperty("SUDOKU_SOLUTION");
+    if (!puzzleStr || !solutionStr) return;
+
     var puzzle = JSON.parse(puzzleStr);
+    var solution = JSON.parse(solutionStr);
 
     var sheetName = "SUDOKU";
     var startRow = 4;
@@ -298,16 +300,14 @@ function onEdit(e) {
 
     var range = e.range;
     var sheet = range.getSheet();
-
-    // Chỉ áp dụng cho sheet chứa Sudoku
     if (sheet.getName() !== sheetName) return;
 
+    // xử lý khóa ô gốc
     var editRow = range.getRow();
     var editCol = range.getColumn();
     var numRows = range.getNumRows();
     var numCols = range.getNumColumns();
 
-    // Lặp từng ô trong vùng sửa
     for (var i = 0; i < numRows; i++) {
       for (var j = 0; j < numCols; j++) {
         var cell = range.getCell(i + 1, j + 1);
@@ -339,8 +339,23 @@ function onEdit(e) {
         // else: ô nằm ngoài grid Sudoku -> bỏ qua
       }
     }
+
+    // ✅ Kiểm tra hoàn thành hay chưa
+    var isComplete = true;
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        var val = sheet.getRange(startRow + r, startCol + c).getValue();
+        if (Number(val) !== solution[r][c]) {
+          isComplete = false;
+          break;
+        }
+      }
+      if (!isComplete) break;
+    }
+
+    props.setProperty("SUDOKU_STATUS", isComplete ? "win" : "idle");
+
   } catch (err) {
     Logger.log("onEdit error: " + err);
   }
 }
-
