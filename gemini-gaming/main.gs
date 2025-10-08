@@ -5,17 +5,11 @@
 // Khi mở file Google Sheets → tạo menu "Game"
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu("Game") // menu riêng
-    .addItem("Sudoku", "showSudokuSidebar")
+    .createMenu("Sudoku") // menu riêng
+    .addItem("Ván mới", "startNewSudoku")
+    .addItem("Đáp án", "showSudokuAnswerDialog")
+    .addItem("Gợi ý", "showSudokuHintDialog")
     .addToUi();
-}
-
-// Hiện sidebar Sudoku
-function showSudokuSidebar() {
-  var html = HtmlService.createHtmlOutputFromFile("sudokuSidebar")
-    .setTitle("Gemini Gaming")
-    .setWidth(300); // chiều rộng sidebar
-  SpreadsheetApp.getUi().showSidebar(html);
 }
 
 // Hiện dialog xem đáp án
