@@ -1,0 +1,20 @@
+Phân tích Sudoku hiện tại:
+${JSON.stringify(current)}
+
+
+Đề bài Sudoku gốc (các ô trống là 0):
+${puzzleStr}
+
+
+Đáp án của đề bài:
+${solutionStr};
+
+
+Yêu cầu:
+- Ô cần xem xét: hàng ${row}, cột ${col}.
+- Dữ liệu Sudoku hiện tại có thể chứa lỗi do người chơi nhập sai.
+- Hãy kiểm tra giá trị tại ô này xem có đúng với lời giải Sudoku hợp lệ hay không (dựa trên toàn bộ cấu trúc Sudoku hợp lệ, không chỉ quy tắc hàng/cột/khối).
+- Nếu ô trống (0 hoặc rỗng): hãy gợi ý số đúng cần điền.
+- Nếu ô có giá trị sai: hãy nói "Sai", giải thích vì sao sai (chỉ ra hàng, cột, hoặc khối nào bị trùng số, ví dụ “hàng 2 có hai số 3”, “khối 3x3 chứa hai số 5”), và gợi ý số đúng.
+- Nếu ô đúng: hãy nói "Đúng", kèm giải thích ngắn gọn (không dùng từ “sai” hay đồng nghĩa của nó).
+- Trả lời ngắn gọn, bằng tiếng Việt.

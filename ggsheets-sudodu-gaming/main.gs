@@ -9,12 +9,13 @@ function onOpen() {
     .addItem("Ván mới", "startNewSudoku")
     .addItem("Đáp án", "showSudokuAnswerDialog")
     .addItem("Gợi ý", "showSudokuHintDialog")
+    .addItem("Kiểm tra lời giải", "checkFullSolution")
     .addToUi();
 }
 
 // Hiện dialog xem đáp án
 function showSudokuAnswerDialog() {
-  var html = HtmlService.createHtmlOutputFromFile("sudokuAnswer")
+  var html = HtmlService.createHtmlOutputFromFile("answerDialog")
     .setWidth(400)
     .setHeight(300);
   SpreadsheetApp.getUi().showModalDialog(html, "Đáp án");
@@ -22,7 +23,7 @@ function showSudokuAnswerDialog() {
 
 // Hiện dialog gợi ý
 function showSudokuHintDialog() {
-  var html = HtmlService.createHtmlOutputFromFile("sudokuHint")
+  var html = HtmlService.createHtmlOutputFromFile("hintDialog")
     .setWidth(400)
     .setHeight(300);
   SpreadsheetApp.getUi().showModalDialog(html, "Gợi ý");
@@ -34,7 +35,7 @@ function showSudokuHintDialog() {
  **************************************************/
 
 // Vẽ Sudoku mới vào sheet
-function drawSudoku() {
+function drawSudoku(level) {
   var lastPuzzleStr = PropertiesService.getScriptProperties().getProperty("SUDOKU_PUZZLE");
   var lastPuzzle = lastPuzzleStr ? JSON.parse(lastPuzzleStr) : null;
 
@@ -42,7 +43,7 @@ function drawSudoku() {
   var maxTries = 5; // tránh vòng lặp vô tận
 
   for (var i = 0; i < maxTries; i++) {
-    data = getSudokuFromGemini();
+    data = getSudokuFromGemini(level);
     puzzle = data.puzzle;
     solution = data.solution;
 
@@ -107,7 +108,7 @@ function isSamePuzzle(p1, p2) {
  **************************************************/
 
 // Gọi Gemini API để tạo Sudoku mới
-function getSudokuFromGemini() {
+function getSudokuFromGemini(level) {
   var apiKey = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
   if (!apiKey) throw new Error("Chưa cấu hình GEMINI_API_KEY trong Script Properties");
 
@@ -116,7 +117,7 @@ Hãy trả về duy nhất một đối tượng JSON biểu diễn một trò c
 Quy tắc:
 - Không thêm giải thích, không thêm chữ nào ngoài JSON.
 - JSON gồm: "title", "size", "difficulty", "puzzle", "solution".
-- "difficulty" = "easy".
+- "difficulty" = "${level}".
 - "puzzle": ma trận 9x9 (0 là ô trống).
 - "solution": lời giải đầy đủ 9x9.
 `;
@@ -148,7 +149,7 @@ Quy tắc:
  **************************************************/
 
 function showLoadingModal() {
-  var html = HtmlService.createHtmlOutputFromFile("loadingModal")
+  var html = HtmlService.createHtmlOutputFromFile("loadingDialog")
     .setWidth(360).setHeight(140);
   SpreadsheetApp.getUi().showModalDialog(html, "Đang xử lý");
 }
@@ -160,11 +161,19 @@ function checkSudokuStatus() {
 
 // Bắt đầu ván Sudoku mới
 function startNewSudoku() {
+  var html = HtmlService.createHtmlOutputFromFile("difficultyDialog")
+    .setWidth(300)
+    .setHeight(200);
+  SpreadsheetApp.getUi().showModalDialog(html, "Chọn độ khó");
+}
+
+// Tạo Sudoku với độ khó được chọn
+function createSudokuWithDifficulty(level) {
   PropertiesService.getScriptProperties().setProperty("SUDOKU_STATUS", "loading");
   showLoadingModal();
 
   try {
-    drawSudoku();
+    drawSudoku(level);  // gọi bản mới có tham số
     PropertiesService.getScriptProperties().setProperty("SUDOKU_STATUS", "done");
   } catch (e) {
     PropertiesService.getScriptProperties().setProperty("SUDOKU_STATUS", "error");
@@ -179,7 +188,7 @@ function startNewSudoku() {
 
 // Điền lời giải Sudoku
 function getSudokuSolution() {
-  var props = PropertiesService.getScriptProperties();
+  var props = PropertiesService.getScriptProperties(); 
   var puzzleStr = props.getProperty("SUDOKU_PUZZLE");
   var solutionStr = props.getProperty("SUDOKU_SOLUTION");
 
@@ -233,15 +242,27 @@ function getSudokuHintForCell(row, col) {
     throw new Error("Ô (" + row + "," + col + ") không phải ô cần giải!");
   }
 
+  var puzzleStr = PropertiesService.getScriptProperties().getProperty("SUDOKU_PUZZLE");
+  var solutionStr = PropertiesService.getScriptProperties().getProperty("SUDOKU_SOLUTION");
+
   var prompt = `
 Phân tích Sudoku hiện tại:
 ${JSON.stringify(current)}
 
+Đề bài Sudoku gốc (các ô trống là 0):
+${puzzleStr}
+
+Đáp án của đề bài:
+${solutionStr};
+
 Yêu cầu:
-- Xem xét ô tại hàng ${row}, cột ${col}.
-- Nếu sai: giải thích & gợi ý đúng.
-- Nếu trống: gợi ý số chính xác.
-- Trả lời ngắn gọn bằng tiếng Việt.
+- Ô cần xem xét: hàng ${row}, cột ${col}.
+- Dữ liệu Sudoku hiện tại có thể chứa lỗi do người chơi nhập sai.
+- Hãy kiểm tra giá trị tại ô này xem có đúng với lời giải Sudoku hợp lệ hay không (dựa trên toàn bộ cấu trúc Sudoku hợp lệ, không chỉ quy tắc hàng/cột/khối).
+- Nếu ô trống (0 hoặc rỗng): hãy gợi ý số đúng cần điền.
+- Nếu ô có giá trị sai: hãy nói "Sai", giải thích vì sao sai (chỉ ra hàng, cột, hoặc khối nào bị trùng số, ví dụ “hàng 2 có hai số 3”, “khối 3x3 chứa hai số 5”), và gợi ý số đúng.
+- Nếu ô đúng: hãy nói "Đúng", kèm giải thích ngắn gọn (không dùng từ “sai” hay đồng nghĩa của nó).
+- Trả lời ngắn gọn, bằng tiếng Việt.
 `;
 
   var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
@@ -255,12 +276,107 @@ Yêu cầu:
   });
 
   var json = JSON.parse(res.getContentText());
+  var hint;
   try {
-    return json.candidates[0].content.parts[0].text.trim();
+    hint = json.candidates[0].content.parts[0].text.trim();
   } catch (e) {
     throw new Error("Không đọc được phản hồi từ Gemini: " + res.getContentText());
   }
+
+  // Xác định ô trên sheet tương ứng
+  var targetRange = sheet.getRange(startRow + (row - 1), startCol + (col - 1));
+  var targetVal = targetRange.getValue();
+
+  // Kiểm tra xem Gemini có nói ô sai hay không bằng một số từ khóa tiếng Việt/Anh
+  var incorrectPattern = /\b(sai|không đúng|không chính xác|không hợp lệ|nhầm|wrong|incorrect)\b/i;
+  if (incorrectPattern.test(hint) && targetVal !== "" && targetVal !== null) {
+    // Tô đỏ ô nhập sai
+    targetRange.setBackground("#ff9999");
+  } else {
+    // Nếu không phát hiện sai, reset nền ô về trắng (hoặc bạn có thể đổi thành nền khác tuỳ thích)
+    targetRange.setBackground("white");
+  }
+
+  return hint;
 }
+
+
+/**************************************************
+ * ✏️ KIỂM TRA KẾT QUẢ
+ **************************************************/
+
+function checkFullSolution() {
+  var ui = SpreadsheetApp.getUi();
+
+  var props = PropertiesService.getScriptProperties();
+  var puzzleStr = props.getProperty("SUDOKU_PUZZLE");
+  var solutionStr = props.getProperty("SUDOKU_SOLUTION");
+
+  if (!puzzleStr || !solutionStr) {
+    ui.alert("❌ Chưa có dữ liệu Sudoku! Hãy tạo ván mới trước.");
+    return;
+  }
+
+  var puzzle = JSON.parse(puzzleStr);
+  var solution = JSON.parse(solutionStr);
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SUDOKU");
+  if (!sheet) {
+    ui.alert("❌ Không tìm thấy sheet SUDOKU!");
+    return;
+  }
+
+  var startRow = 4, startCol = 3;
+  var isComplete = true;
+  var isCorrect = true;
+
+  // Reset toàn bộ bảng (ô gốc = xám, ô trống = trắng)
+  for (var r = 0; r < 9; r++) {
+    for (var c = 0; c < 9; c++) {
+      var cell = sheet.getRange(startRow + r, startCol + c);
+      if (puzzle[r][c] !== 0) {
+        // Ô gốc (giữ màu xám)
+        cell.setBackground("#dddddd");
+      } else {
+        // Ô nhập liệu (reset về trắng)
+        cell.setBackground("white");
+      }
+    }
+  }
+
+  // Kiểm tra từng ô
+  for (var r = 0; r < 9; r++) {
+    for (var c = 0; c < 9; c++) {
+      var cell = sheet.getRange(startRow + r, startCol + c);
+      var val = cell.getValue();
+
+      if (puzzle[r][c] === 0) {
+        if (val === "" || val === null) {
+          isComplete = false;
+        } else if (Number(val) !== solution[r][c]) {
+          isCorrect = false;
+          // ❌ tô đỏ ô sai
+          cell.setBackground("#ff9999");
+        }
+      }
+    }
+  }
+
+  if (!isComplete) {
+    ui.alert("⚠️ Còn ô trống — hãy hoàn thành ván!");
+    props.setProperty("SUDOKU_STATUS", "idle");
+    return;
+  }
+
+  props.setProperty("SUDOKU_STATUS", isCorrect ? "win" : "idle");
+
+  if (isCorrect) {
+    ui.alert("🎉 Chúc mừng bạn đã giải đúng!");
+  } else {
+    ui.alert("❌ Có lỗi sai — hãy kiểm tra lại!");
+  }
+}
+
 
 
 /**************************************************
@@ -300,22 +416,26 @@ function onEdit(e) {
       }
     }
 
-    // Kiểm tra thắng cuộc
-    var isComplete = true;
-    for (var r = 0; r < 9; r++) {
-      for (var c = 0; c < 9; c++) {
-        var val = sheet.getRange(startRow + r, startCol + c).getValue();
-        if (Number(val) !== solution[r][c]) {
-          isComplete = false;
-          break;
-        }
-      }
-      if (!isComplete) break;
-    }
+    // // Kiểm tra thắng cuộc
+    // var isComplete = true;
+    // for (var r = 0; r < 9; r++) {
+    //   for (var c = 0; c < 9; c++) {
+    //     var val = sheet.getRange(startRow + r, startCol + c).getValue();
+    //     if (Number(val) !== solution[r][c]) {
+    //       isComplete = false;
+    //       break;
+    //     }
+    //   }
+    //   if (!isComplete) break;
+    // }
 
-    props.setProperty("SUDOKU_STATUS", isComplete ? "win" : "idle");
+    // props.setProperty("SUDOKU_STATUS", isComplete ? "win" : "idle");
 
   } catch (err) {
     Logger.log("onEdit error: " + err);
   }
 }
+
+
+
+

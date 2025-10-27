@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      button {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .easy { background-color: #a8e6cf; }
+      .medium { background-color: #ffd3b6; }
+      .hard { background-color: #ffaaa5; }
+    </style>
+  </head>
+  <body>
+    <button class="easy" onclick="chooseDifficulty('easy')">Dễ</button>
+    <button class="medium" onclick="chooseDifficulty('medium')">Trung bình</button>
+    <button class="hard" onclick="chooseDifficulty('hard')">Khó</button>
+
+    <script>
+      function chooseDifficulty(level) {
+        google.script.run
+          .withSuccessHandler(() => google.script.host.close())
+          .createSudokuWithDifficulty(level);
+      }
+    </script>
+  </body>
+</html>

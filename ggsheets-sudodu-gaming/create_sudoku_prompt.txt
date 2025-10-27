@@ -1,0 +1,7 @@
+Hãy trả về duy nhất một đối tượng JSON biểu diễn một trò chơi Sudoku 9x9 mức dễ.
+Quy tắc:
+- Không thêm giải thích, không thêm chữ nào ngoài JSON.
+- JSON gồm: "title", "size", "difficulty", "puzzle", "solution".
+- "difficulty" = "${level}".
+- "puzzle": ma trận 9x9 (0 là ô trống).
+- "solution": lời giải đầy đủ 9x9.
